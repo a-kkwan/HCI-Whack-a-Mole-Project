@@ -1,0 +1,8 @@
+#box {
+	position: relative;
+	width: 30%;
+	height: 200px;
+	margin: auto;
+	top:100px;
+	background-color: red;
+}
