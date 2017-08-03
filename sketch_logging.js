@@ -4,30 +4,17 @@
      Supervisor :: Regan Mandryk 
 ================================================ */ 
 
-// NOTE :: When running a local server to view this p5 sketch, the logging portion with $.post() must be commented out or else 
-// the sketch will not run. However, when importing the sketch into BOFS (Bride of Frankensystem), uncomment the $.post() requests 
-// so data can be stored onto the SQLite database. 
-
-// State & Screen variables 
-var welcomeState = 0; 
-var gameState = 1; 
-var programState = welcomeState;
-var title;  // Title card for the game 
-var startUnpressed; 
-var startPressed; 
-var menuUnpressed; 
-var menuPressed; 
-
 // Variables for in game sprites used in the Whack-A-Mole game 
 var img; // Mole's image 
 var bg; // Background with sky, ground, holes 
 var hole; // Image of the full hole 
+var title;  // Title card for the game 
 var numMoles = 9; // Number of moles created on screen 
 var hammer; // Hammer image (idle)
 var hammerHit; // Hammer image (hitting the mole/when clicked)
 
 // Position hit box offset for the moles of all sizes 
-var largeX = 50;
+var largeX = 30;
 var largeY = 50; 
 var smallX = 50;
 var smallY = 20; 
@@ -60,7 +47,9 @@ var moleSizes = [2, 0, 1, 2, 1, 0, 1, 2, 2, 0, 1, 2, 0, 1, 2, 2, 0, 1, 0, 1, 2, 
 var spawnSize = moleSizes[whichOne]; // start at location 0, which is a large mole 
 
 // Cursor/Time Logging variables
-var timeStamp; // time stamp for cursor movement
+var timeStamp; // time stamp for each click  
+var mouseLocX; 
+var mouseLocY; 
 
 // Target Logging variables 
 // Location, size, distance travelled, boolean if clicked on first try, time from shown to mouse down 
@@ -71,10 +60,9 @@ var clickedOnFirstTry = false; // true if clicked on first try, false otherwise
 var clickOnce = 0; // Counting variable to determine if they've clicked once 
 var distance; // Small, medium, large distances
 
-var active = false; // Timing control 
 var timeShown = 0; 
-var stopTime = 0; // Time stopped 
-var timeFromShownToMouseDown = 0; // Set to zero so it functions with logging to database 
+var intermediateTime = 0; 
+var timeFromShownToMouseDown = 0; 
 
 // Save reference of previous mole 
 var prevSpawnIndex = positions[current]; // Initially the same as current, distance should be 0 
@@ -98,7 +86,7 @@ function Mole (x, y, img) {
 
     this.isOver = function() { 
        if (spawnSize == 2) { 
-           return (mouseX >= (this.x-largeX) && mouseX <= (this.x-largeX)+150 && mouseY >= (this.y-largeY) && mouseY <= (this.y-largeY)+200);
+           return (mouseX >= (this.x-largeX) && mouseX <= (this.x-largeX)+100 && mouseY >= (this.y-largeY) && mouseY <= (this.y-largeY)+100);
        } else if (spawnSize == 0) { 
            return (mouseX >= (this.x-smallX) && mouseX <= (this.x-smallX)+100 && mouseY >= (this.y-smallY) && mouseY <= (this.y-smallY)+100);
        } else if (spawnSize == 1) { 
@@ -119,10 +107,11 @@ function Mole (x, y, img) {
             this.graphics.image(img, -30, this.y-(this.gy+50), large, large); 
         }  
 
-        // Activate the timer only if not hit 
-        if (!this.hit) {
-            activateTime();
-        }
+        // Log the target accordingly 
+        logTarget();
+
+        // Increment the timer for the mole appearance 
+        timeShown++; 
 
         // Animation Speed 
         this.y = this.y - 5;
@@ -175,7 +164,7 @@ function Mole (x, y, img) {
                     this.next(); // Update the size only if it's been hit/advancing to next hole 
 
                     // If we exceeded the last position, loop to the beginning of the array 
-                    if (current > 27) {
+                    if (current > 19) {
                         current = 0;
                         moleSpawn = positions[current]; 
                     }
@@ -190,9 +179,12 @@ function Mole (x, y, img) {
                     } else { 
                         clickedOnFirstTry = false; 
                     }
-                    // Reset the boolean clicks 
                     // console.log(clickedOnFirstTry); 
                     resetClicks();
+
+                    // Reset the timing variables to determine mouse clicks 
+                    timeShown = 0;
+                    timeFromShownToMouseDown = 0;
                 }  
             }
             // Reset the timer after the mole hides for a little bit!
@@ -212,7 +204,7 @@ function Mole (x, y, img) {
         whichOne++; // Update the size index 
         spawnSize = moleSizes[whichOne];
 
-        if (whichOne > 27) { 
+        if (whichOne > 19) { 
             whichOne = 0; 
             spawnSize = moleSizes[whichOne];
         }
@@ -231,26 +223,18 @@ function Mole (x, y, img) {
 
 // preload() :: load all of the necessary graphical components/sprites for the game 
 function preload() { 
-    // Load necessary menu requirements (start, title card)
-    startUnpressed = loadImage("assets/start_unpressed.png"); 
-    startPressed = loadImage("assets/start_pressed.png");
-    menuUnpressed = loadImage("assets/backToMenuUnpressed.png"); 
-    menuPressed = loadImage("assets/backToMenuPressed.png");
-
-    title = loadImage("assets/title.png");
-
     // Load the holes
-    hole = loadImage("assets/hole_copy2.png");
+    hole = loadImage("buttonGame/images/hole_copy2.png");
 
     // Load the image of the background, on the canvas
-    bg = loadImage("assets/newbg.png"); 
+    bg = loadImage("buttonGame/images/newbg.png"); 
 
     // load the image of the mole
-    img = loadImage("assets/molecpy.png"); 
+    img = loadImage("buttonGame/images/molecpy2.png"); 
     
     // Load the hammer images 
-    hammer = loadImage("assets/hammer.png"); 
-    hammerHit = loadImage("assets/hammer2.png");
+    hammer = loadImage("buttonGame/images/hammer.png"); 
+    hammerHit = loadImage("buttonGame/images/hammer2.png");
 }
 
 // setup() :: runs once, to set up the canvas used for the Whack a Mole Game 
@@ -271,18 +255,20 @@ function setup() {
 
 // draw() :: animation function, displaying the visual components of the game 
 function draw() {
-    // Structure the game
-    switch(programState) {
-        case welcomeState:
-            welcomeGame(); 
-            break; 
-        case gameState:
-            playGame(); 
-            break;
-    }
+    // Fill the background of the whack a mole game 
+    image(bg, 0, 0, wid, hei); 
+  
+    // New Holes location 
+    loadHoles(); 
+
+    // Show and hide the moles 
+    playGame();
 
     // Display the hammer images to indicate whacking the mole 
     displayHammer();
+
+    // Display the mouse locations in the data and also the time when clicked 
+    mouseLoc();
 }
 
 // loadHoles() :: load the correct positions of all holes 
@@ -292,30 +278,8 @@ function loadHoles() {
     }
 }
 
-// welcomeGame() :: welcome state of the game 
-function welcomeGame() { 
-    // Title card display 
-    image(title, 0, 0, wid, hei);
-    // Start button AND change the game start 
-
-    if (mouseX >= 50 && mouseX <= (50+250) && mouseY >= 50 && mouseY <= (50+100)){
-        image (startPressed, 50, 20, 250, 125);
-        if (mouseIsPressed) { 
-            programState = gameState; 
-        }
-    } else {
-        image (startUnpressed, 50, 20, 250, 125);  
-    }
-}
-
 // playGame() :: play the game, show and hide the moles 
 function playGame() { 
-    // Fill the background of the whack a mole game 
-    image(bg, 0, 0, wid, hei); 
-  
-    // New Holes location 
-    loadHoles(); 
-
     // Show all of the 9 moles and update their position, according to their mole spawn index
     myMole[moleSpawn].showMole();        
     myMole[moleSpawn].updatePosition();
@@ -326,19 +290,6 @@ function playGame() {
     
     // Control the buffer position and display the buffer along with the moles 
     image(myMole[moleSpawn].graphics, myMole[moleSpawn].gx, myMole[moleSpawn].gy);
-
-    // Log the target appropriately when you're in game mode 
-    logTarget(); 
-
-    // Back to menu
-    if (mouseX >= 0 && mouseX <= (0+200) && mouseY >= 800 && mouseY <= (800+200)){
-        image (menuPressed, 0, 850, 200, 49);
-        if (mouseIsPressed) { 
-            programState = welcomeState; 
-        }
-    } else {
-        image(menuUnpressed, 0, 850, 200, 49);
-    } 
 }
 
 // displayHammer() :: Display the hammer as the cursor, changes depending if a mole is hit or not 
@@ -353,63 +304,49 @@ function displayHammer() {
 
 // mousePressed() :: Set the hit variable of the mole accordingly if the mouse is over the mole 
 function mousePressed() {
-   // Log information for mouse pressing only during game state
-   if (programState == gameState) {
+   // console.log("mouseX: " + mouseX);
+   // console.log("mouseY: " + mouseY);
 
-       for (var i = 0; i < numMoles; i++) {
-            //console.log(myMole[i].isOver());
-            if (myMole[i].isOver()) {
-                myMole[i].hit = true; 
-                //console.log("Mole hit: " + myMole[i].hit);
-            } else {
-                myMole[i].hit = false; 
-            } 
-        }
-        clickOnce++; // Increase the counter whenever you press to track if we have successfully clicked in one try 
-        // console.log(clickOnce);
-
-        // Update timed appearance, from moment of appearance to mouse clicked 
-       if (active) {  // Only if its active 
-           active = false; 
-           stopTime = millis(); 
-       }
-
+    for (var i = 0; i < numMoles; i++) {
+        //console.log(myMole[i].isOver());
+        if (myMole[i].isOver()) {
+            myMole[i].hit = true; 
+            //console.log("Mole hit: " + myMole[i].hit);
+        } else {
+            myMole[i].hit = false; 
+        } 
     }
-}
+    clickOnce++; // Increase the counter whenever you press to track if we have 
+    // successfully clicked in one try 
+    // console.log(clickOnce);
 
-// mouseMoved() :: Log the mouse locations and a new time stamp of the interactions 
-function mouseMoved() {
-    // Log information when the mouse has moved and out of the welcome state 
-    if (programState == gameState){
-        timeStamp = new Date(); 
-        // console.log(timeStamp, mouseX, mouseY); 
-
-        /*
-        var mouseData = {
-            timing: timeStamp, 
-            xPos: mouseX, 
-            yPos: mouseY,
-            action: "mouse"
-        };
-        $.post("#", mouseData);*/
-    }
+    // Update timed appearance, previous mole time saved as intermediate time 
+    timeFromShownToMouseDown = timeShown;
+    intermediateTime = timeFromShownToMouseDown;         
+    timeShown = 0;
 }
 
 /** LOGGING FUNCTIONS */
-
-// activateTime() :: Reset the timing for mole appearance 
-function activateTime() { 
-    active = true;
-    timeShown = millis(); 
-    stopTime = 0;  
-}
 
 // resetClicks() :: Reset the click counter back to 0 to check if we whacked a mole on first try 
 function resetClicks() { 
     clickOnce = 0; 
 }
 
-// logTarget() :: log all relevant information regarding the mole target 
+// mouseLoc() :: Track the mouse locations in the game 
+function mouseLoc() { 
+    timeStamp = new Date(); 
+    // console.log(timeStamp); 
+
+    var mouseData = {
+        timing: timeStamp, 
+        xPos: mouseX, 
+        yPos: mouseY,
+        action: "mouse"
+    };
+    $.post("#", mouseData);
+}
+
 function logTarget () { 
     // Target location 
     /*
@@ -434,21 +371,15 @@ function logTarget () {
     distance = dist(myMole[prevSpawnIndex].x, locations[prevSpawnIndex].y, myMole[curSpawnIndex].x, locations[curSpawnIndex].y);
 
     // console.log ("Location: " + targetX + " " + targetY + ", Size of the mole: " + sizeOfMole + ", Distance travelled from previous to next spawn: " + distance + ", Time from shown to mouse down: " + timeFromShownToMouseDown); 
-    
-    if (!active) { 
-        timeFromShownToMouseDown = stopTime - timeShown; 
-    }
-     //console.log(timeFromShownToMouseDown);
-    
-/*
+
     var targetData = { 
         locX: targetX, 
         locY: targetY, 
         moleSize: sizeOfMole, 
-        distanceTravelled: distance, 
         firstTryClick: clickedOnFirstTry, 
+        distanceTravelled: distance, 
         timeShownFromClick: timeFromShownToMouseDown,
         action: "target"
     }; 
-    $.post("#", targetData);*/
+    $.post("#", targetData);
 }

@@ -27,7 +27,7 @@ var hammer; // Hammer image (idle)
 var hammerHit; // Hammer image (hitting the mole/when clicked)
 
 // Position hit box offset for the moles of all sizes 
-var largeX = 50;
+var largeX = 30;
 var largeY = 50; 
 var smallX = 50;
 var smallY = 20; 
@@ -67,14 +67,12 @@ var timeStamp; // time stamp for cursor movement
 var targetX; // Mole location X
 var targetY; // Mole location Y 
 var sizeOfMole; // Size of the mole 
-var clickedOnFirstTry = false; // true if clicked on first try, false otherwise 
+var clickedOnFirstTry; // true if clicked on first try, false otherwise 
 var clickOnce = 0; // Counting variable to determine if they've clicked once 
 var distance; // Small, medium, large distances
 
-var active = false; // Timing control 
 var timeShown = 0; 
-var stopTime = 0; // Time stopped 
-var timeFromShownToMouseDown = 0; // Set to zero so it functions with logging to database 
+var timeFromShownToMouseDown = 0; 
 
 // Save reference of previous mole 
 var prevSpawnIndex = positions[current]; // Initially the same as current, distance should be 0 
@@ -98,7 +96,7 @@ function Mole (x, y, img) {
 
     this.isOver = function() { 
        if (spawnSize == 2) { 
-           return (mouseX >= (this.x-largeX) && mouseX <= (this.x-largeX)+150 && mouseY >= (this.y-largeY) && mouseY <= (this.y-largeY)+200);
+           return (mouseX >= (this.x-largeX) && mouseX <= (this.x-largeX)+100 && mouseY >= (this.y-largeY) && mouseY <= (this.y-largeY)+100);
        } else if (spawnSize == 0) { 
            return (mouseX >= (this.x-smallX) && mouseX <= (this.x-smallX)+100 && mouseY >= (this.y-smallY) && mouseY <= (this.y-smallY)+100);
        } else if (spawnSize == 1) { 
@@ -119,10 +117,8 @@ function Mole (x, y, img) {
             this.graphics.image(img, -30, this.y-(this.gy+50), large, large); 
         }  
 
-        // Activate the timer only if not hit 
-        if (!this.hit) {
-            activateTime();
-        }
+        // Increment the timer for the mole appearance 
+        timeShown = millis(); 
 
         // Animation Speed 
         this.y = this.y - 5;
@@ -327,9 +323,6 @@ function playGame() {
     // Control the buffer position and display the buffer along with the moles 
     image(myMole[moleSpawn].graphics, myMole[moleSpawn].gx, myMole[moleSpawn].gy);
 
-    // Log the target appropriately when you're in game mode 
-    logTarget(); 
-
     // Back to menu
     if (mouseX >= 0 && mouseX <= (0+200) && mouseY >= 800 && mouseY <= (800+200)){
         image (menuPressed, 0, 850, 200, 49);
@@ -353,8 +346,14 @@ function displayHammer() {
 
 // mousePressed() :: Set the hit variable of the mole accordingly if the mouse is over the mole 
 function mousePressed() {
+   // console.log("mouseX: " + mouseX);
+   // console.log("mouseY: " + mouseY);
+
    // Log information for mouse pressing only during game state
    if (programState == gameState) {
+
+       //Log the target accordingly
+       logTarget();
 
        for (var i = 0; i < numMoles; i++) {
             //console.log(myMole[i].isOver());
@@ -369,11 +368,8 @@ function mousePressed() {
         // console.log(clickOnce);
 
         // Update timed appearance, from moment of appearance to mouse clicked 
-       if (active) {  // Only if its active 
-           active = false; 
-           stopTime = millis(); 
-       }
-
+        timeFromShownToMouseDown = millis() - timeShown; 
+        console.log(timeFromShownToMouseDown);
     }
 }
 
@@ -396,13 +392,6 @@ function mouseMoved() {
 }
 
 /** LOGGING FUNCTIONS */
-
-// activateTime() :: Reset the timing for mole appearance 
-function activateTime() { 
-    active = true;
-    timeShown = millis(); 
-    stopTime = 0;  
-}
 
 // resetClicks() :: Reset the click counter back to 0 to check if we whacked a mole on first try 
 function resetClicks() { 
@@ -435,10 +424,7 @@ function logTarget () {
 
     // console.log ("Location: " + targetX + " " + targetY + ", Size of the mole: " + sizeOfMole + ", Distance travelled from previous to next spawn: " + distance + ", Time from shown to mouse down: " + timeFromShownToMouseDown); 
     
-    if (!active) { 
-        timeFromShownToMouseDown = stopTime - timeShown; 
-    }
-     //console.log(timeFromShownToMouseDown);
+    console.log(timeFromShownToMouseDown);
     
 /*
     var targetData = { 
