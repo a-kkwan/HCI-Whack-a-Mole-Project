@@ -6,5 +6,6 @@ Upon becoming a summer research student awarded the **Undergraduate Student Rese
 
 The goal was to create a game that combines all elements of human computer interaction, mental health, stress, Fitts' Law, and target acquisition. This game features a menu and a play screen. There are three different sizes of moles and distances that are crossed (small, medium and large). Moreover, two separate sets of data are logged onto a SQLite database externally using the Python-Flask framework, that consist of mouse activity of the user and target information of the moles displayed within the game canvas. These data sets are utilized for analysis in HCI and mental health related research. 
 
-**Languages utilized**: Javascript, Processing, Python and SQL (Python and SQL files not published) 
+**Languages utilized**: Javascript, Processing, Python and SQL (Python and SQL files not published)
+
 **Additional tools utilized**: Terminal, Visual Studio Code, Photoshop CS6, DB Visualizer for SQLite 
