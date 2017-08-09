@@ -1,5 +1,7 @@
 # Whack a Mole Project: Created by Amy Kwan (2017) in the Human Computer Interaction Lab under Dr. Regan Mandryk (Department of Computer Science, University of Saskatchewan)
 
+! [alt text] https://github.com/a-kkwan/Whack-a-Mole-Project-HCI-/blob/master/screenshot_hci_wam.png
+
 This is a game (whack a mole) created in the summer (July-August) of 2017 within the Human Computer Interaction Lab at the University of Saskatchewan.
 
 Upon becoming a summer research student awarded the **Undergraduate Student Research Award (USRA)** prior to my third year of my undergraduate Computer Science honors degree at the University of Saskatchewan, I was assigned to the Human Computer Interaction lab under the supervision of Dr. Regan Mandryk. I was tasked with assisting her in creating target acquisition games that would be used for HCI and mental health studies. 
