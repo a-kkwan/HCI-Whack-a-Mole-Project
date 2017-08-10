@@ -18,6 +18,10 @@ var startPressed;
 var menuUnpressed; 
 var menuPressed; 
 
+// NEWLY ADDED ::
+var instructions; 
+var insFont; 
+
 // Variables for in game sprites used in the Whack-A-Mole game 
 var img; // Mole's image 
 var bg; // Background with sky, ground, holes 
@@ -251,6 +255,10 @@ function preload() {
     // Load the hammer images 
     hammer = loadImage("assets/hammer.png"); 
     hammerHit = loadImage("assets/hammer2.png");
+
+    // NEWLY ADDED 
+    instructions = loadImage("assets/instructions.png");
+    insFont = loadFont('/assets/UGLYBOY-ASPEKHNDZ.ttf'); 
 }
 
 // setup() :: runs once, to set up the canvas used for the Whack a Mole Game 
@@ -305,6 +313,23 @@ function welcomeGame() {
         }
     } else {
         image (startUnpressed, 50, 20, 250, 125);  
+    }
+
+    // NEWLY ADDED :: Display Instructions 
+    image(instructions, 1030, 860, 170, 46);
+    if (mouseX >= 1030 && mouseX <= (1030+200) && mouseY >= 860 && mouseY<= (860+200)){
+        fill (153, 180);
+        noStroke();
+        rect (width/5, height/5, 700, 500);
+
+        textAlign(CENTER);
+        fill(0);
+        textFont(insFont);
+        textSize(40);
+        text('WHACK A MoLE GAME INSTRUCTIoNS: ', 300, 230, 580, 300);
+        fill(235);
+        text('PRESS START TO BEGIN PLAYING WHACK A MOLE. PRESS BACK TO MENU TO EXIT. ENJOY PLAYING!', 300, 300, 580, 300);
+        text('CREATED BY AMY KWAN (UoFS CoMPUTER SCIENCE, 2017) UNDER THE SUPERVISION OF DR. REGAN MANDRYK.', 300, 500, 580, 300);
     }
 }
 
