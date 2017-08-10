@@ -258,7 +258,7 @@ function preload() {
 
     // NEWLY ADDED 
     instructions = loadImage("assets/instructions.png");
-    insFont = loadFont('/assets/UGLYBOY-ASPEKHNDZ.ttf'); 
+    insFont = loadFont('assets/UGLYBOY-ASPEKHNDZ.ttf'); 
 }
 
 // setup() :: runs once, to set up the canvas used for the Whack a Mole Game 
