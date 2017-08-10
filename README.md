@@ -1,4 +1,4 @@
-# Whack a Mole Project: Created by Amy Kwan (2017) in the Human Computer Interaction Lab under Dr. Regan Mandryk (Department of Computer Science, University of Saskatchewan)
+# Whack a Mole: Created by Amy Kwan (2017) in the Human Computer Interaction Lab under Dr. Regan Mandryk (Department of Computer Science, University of Saskatchewan)
 
 ![alttext](https://github.com/a-kkwan/Whack-a-Mole-Project-HCI-/blob/master/screenshot_hci_wam.png)
 
