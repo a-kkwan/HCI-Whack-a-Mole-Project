@@ -106,7 +106,7 @@ function Mole (x, y, img) {
     this.img = img; 
     this.hit = false; // Keep track of if the mole is whacked or not 
      
-    this.totalMoleTime = 280; //int (random(120, 300)); 
+    this.totalMoleTime = int (random(80, 250)); 
     this.moleTime = 0; 
 
     this.graphics = createGraphics(140,160);
@@ -238,7 +238,7 @@ function Mole (x, y, img) {
         // console.log("Resetting now!");
         // console.log("current mole time = " + this.moleTime);
         // console.log("total time = " + this.totalMoleTime);
-        this.totalMoleTime = int (random(120, 250)); 
+        this.totalMoleTime = int (random(80, 250)); 
         this.moleTime = 0;
     }
 
