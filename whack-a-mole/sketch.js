@@ -31,12 +31,12 @@ var hammer; // Hammer image (idle)
 var hammerHit; // Hammer image (hitting the mole/when clicked)
 
 // Position hit box offset for the moles of all sizes 
-var largeX = 50;
+var largeX = 100;
 var largeY = 50; 
-var smallX = 50;
+var smallX = 80;
 var smallY = 20; 
-var medX = 40; 
-var medY = 40; 
+var medX = 70; 
+var medY = 20; 
 
 // Proper locations, and height/width of game canvas
 var wid = 1200; 
@@ -81,8 +81,23 @@ var stopTime = 0; // Time stopped
 var timeFromShownToMouseDown = 0; // Set to zero so it functions with logging to database 
 
 // Save reference of previous mole 
-var prevSpawnIndex = positions[current]; // Initially the same as current, distance should be 0 
+var prevSpawnIndex = positions[current]; // Initially the same as current, distance should be 0, can be previous hole, too 
 var curSpawnIndex = positions[current]; 
+
+// Variable to save the next hole 
+var curHole = current + 1; 
+var nextHoleIndex = positions[curHole]; 
+
+// Save the next mole size 
+var nextSize = whichOne + 1; 
+var nextMoleSize = moleSizes[nextSize]; 
+
+// Whenever mouse is pressed on the target, log this information 
+var pressedX;
+var pressedY;
+
+// Did the mole hide before the user whacked it? 
+var didTheMoleHideFirst = false; 
 
 // Mole class 
 function Mole (x, y, img) { 
@@ -91,11 +106,11 @@ function Mole (x, y, img) {
     this.img = img; 
     this.hit = false; // Keep track of if the mole is whacked or not 
      
-    this.totalMoleTime = int (random(30, 120)); 
+    this.totalMoleTime = 280; //int (random(120, 300)); 
     this.moleTime = 0; 
 
     this.graphics = createGraphics(140,160);
-    this.gx = x*0.9; // Buffer canvas location x
+    this.gx = x*0.88; // Buffer canvas location x
     this.gy = y-130; // Buffer canvas location y
 
     //////////
@@ -104,9 +119,9 @@ function Mole (x, y, img) {
        if (spawnSize == 2) { 
            return (mouseX >= (this.x-largeX) && mouseX <= (this.x-largeX)+150 && mouseY >= (this.y-largeY) && mouseY <= (this.y-largeY)+200);
        } else if (spawnSize == 0) { 
-           return (mouseX >= (this.x-smallX) && mouseX <= (this.x-smallX)+100 && mouseY >= (this.y-smallY) && mouseY <= (this.y-smallY)+100);
+           return (mouseX >= (this.x-smallX) && mouseX <= (this.x-smallX)+230 && mouseY >= (this.y-smallY) && mouseY <= (this.y-smallY)+200);
        } else if (spawnSize == 1) { 
-           return (mouseX >= (this.x-medX) && mouseX <= (this.x-medX)+100 && mouseY >= (this.y-medY) && mouseY <= (this.y-medY) + 100);
+           return (mouseX >= (this.x-medX) && mouseX <= (this.x-medX)+230 && mouseY >= (this.y-medY) && mouseY <= (this.y-medY) + 200);
        }
     }
 
@@ -129,7 +144,7 @@ function Mole (x, y, img) {
         }
 
         // Animation Speed 
-        this.y = this.y - 5;
+        this.y = this.y - 8;
 
         // Change the bound of showing the mole depending on size 
         var bound; 
@@ -159,7 +174,7 @@ function Mole (x, y, img) {
             this.graphics.image(img, -30, this.y-(this.gy+50), large, large); 
         }
        
-        this.y = this.y + 10;
+        this.y = this.y + 15;
         var bound = y + 60;
         // Move down the the lower bound of the hole 
         if (this.y >= bound) {
@@ -184,9 +199,19 @@ function Mole (x, y, img) {
                         moleSpawn = positions[current]; 
                     }
 
+
                     /** Save the current index for distance calculation */
                     curSpawnIndex = moleSpawn; 
                     // console.log("Current spawn index: " + curSpawnIndex); 
+
+                    // Change next hole and check out of bounds 
+                    curHole++; 
+                    if (curHole == 27) { 
+                        curHole = 0; 
+                    } else if (curHole > 27) { 
+                        curHole = 1; 
+                    }
+                    nextHoleIndex = positions[curHole];
 
                     // Have we successfully whacked a mole in one click? 
                     if (clickOnce === 1) { 
@@ -197,17 +222,23 @@ function Mole (x, y, img) {
                     // Reset the boolean clicks 
                     // console.log(clickedOnFirstTry); 
                     resetClicks();
+
+                   // Reset timer 
+                   this.reset();
                 }  
             }
-            // Reset the timer after the mole hides for a little bit!
-            if (this.moleTime >= 150){
+            // Reset the timer after the mole hides for a little bit! (If not hit)
+            if (this.moleTime >= 250){
                 this.reset();
             }
         }
     }
 
     this.reset = function() { 
-        this.totalMoleTime = int (random(30, 120)); 
+        // console.log("Resetting now!");
+        // console.log("current mole time = " + this.moleTime);
+        // console.log("total time = " + this.totalMoleTime);
+        this.totalMoleTime = int (random(120, 250)); 
         this.moleTime = 0;
     }
 
@@ -220,15 +251,28 @@ function Mole (x, y, img) {
             whichOne = 0; 
             spawnSize = moleSizes[whichOne];
         }
+
+        // Update the next size for logging 
+        nextSize++; 
+        if (nextSize == 27) { 
+            nextSize = 0; 
+        } else if (nextSize > 27) { 
+            nextMoleSize = 1; 
+        }
+        nextMoleSize = moleSizes[nextSize];
     }
 
     this.updatePosition = function() { 
         // increment the time of the mole, then when it exceeds the total time . . . 
         this.moleTime++; 
 
-        if (this.moleTime >= this.totalMoleTime) {
+        //console.log(this.moleTime);
+
+        if (this.moleTime > this.totalMoleTime) {
             // Update the position within the hide function 
             this.hideMole(); 
+            // They hid first, so set true 
+            didTheMoleHideFirst = true; 
         }   
     }
 }
@@ -244,13 +288,13 @@ function preload() {
     title = loadImage("assets/title.png");
 
     // Load the holes
-    hole = loadImage("assets/hole_copy2.png");
+    hole = loadImage("assets/hole_copy.png");
 
     // Load the image of the background, on the canvas
     bg = loadImage("assets/newbg.png"); 
 
     // load the image of the mole
-    img = loadImage("assets/molecpy.png"); 
+    img = loadImage("assets/molecpy2.png"); 
     
     // Load the hammer images 
     hammer = loadImage("assets/hammer.png"); 
@@ -258,7 +302,7 @@ function preload() {
 
     // NEWLY ADDED 
     instructions = loadImage("assets/instructions.png");
-    insFont = loadFont('/assets/UGLYBOY-ASPEKHNDZ.ttf'); 
+    insFont = loadFont('assets/UGLYBOY-ASPEKHNDZ.ttf'); 
 }
 
 // setup() :: runs once, to set up the canvas used for the Whack a Mole Game 
@@ -320,16 +364,16 @@ function welcomeGame() {
     if (mouseX >= 1030 && mouseX <= (1030+200) && mouseY >= 860 && mouseY<= (860+200)){
         fill (153, 180);
         noStroke();
-        rect (width/5, height/5, 700, 500);
+        rect (width/4, height/5, 700, 500);
 
         textAlign(CENTER);
         fill(0);
         textFont(insFont);
         textSize(40);
-        text('WHACK A MoLE GAME INSTRUCTIoNS: ', 300, 230, 580, 300);
+        text('WHACK A MoLE GAME INSTRUCTIoNS: ', 420, 230, 580, 300);
         fill(235);
-        text('PRESS START TO BEGIN PLAYING WHACK A MOLE. PRESS BACK TO MENU TO EXIT. ENJOY PLAYING!', 300, 300, 580, 300);
-        text('CREATED BY AMY KWAN (UoFS CoMPUTER SCIENCE, 2017) UNDER THE SUPERVISION OF DR. REGAN MANDRYK.', 300, 500, 580, 300);
+        text('PRESS START TO BEGIN PLAYING WHACK A MOLE. PRESS BACK TO MENU TO EXIT. ENJOY PLAYING!', 420, 300, 580, 300);
+        text('CREATED BY AMY KWAN (UoFS CoMPUTER SCIENCE, 2017) UNDER THE SUPERVISION OF DR. REGAN MANDRYK.', 420, 500, 580, 300);
     }
 }
 
@@ -342,18 +386,21 @@ function playGame() {
     loadHoles(); 
 
     // Show all of the 9 moles and update their position, according to their mole spawn index
-    myMole[moleSpawn].showMole();        
+    myMole[moleSpawn].showMole();     
+    
+    // Update the position 
     myMole[moleSpawn].updatePosition();
 
     if (myMole[moleSpawn].hit) { 
+        // If they hit it on the first try, the mole didn't hide on the first try 
+        didTheMoleHideFirst = false;
+
+        // Hide the mole if it has been hit 
         myMole[moleSpawn].hideMole(); 
     }
     
     // Control the buffer position and display the buffer along with the moles 
     image(myMole[moleSpawn].graphics, myMole[moleSpawn].gx, myMole[moleSpawn].gy);
-
-    // Log the target appropriately when you're in game mode 
-    logTarget(); 
 
     // Back to menu
     if (mouseX >= 0 && mouseX <= (0+200) && mouseY >= 800 && mouseY <= (800+200)){
@@ -399,6 +446,12 @@ function mousePressed() {
            stopTime = millis(); 
        }
 
+       // Log where the mouse is pressed! 
+       pressedX = mouseX;
+       pressedY = mouseY;
+
+       // Log the target appropriately when you're in game mode 
+        logTarget(); 
     }
 }
 
@@ -406,7 +459,7 @@ function mousePressed() {
 function mouseMoved() {
     // Log information when the mouse has moved and out of the welcome state 
     if (programState == gameState){
-        timeStamp = new Date(); 
+        // timeStamp = new Date(); 
         // console.log(timeStamp, mouseX, mouseY); 
 
         /*
@@ -414,6 +467,9 @@ function mouseMoved() {
             timing: timeStamp, 
             xPos: mouseX, 
             yPos: mouseY,
+            prevHole: curSpawnIndex,
+            nextHole: nextHoleIndex, 
+            nextSize: nextMoleSize,
             action: "mouse"
         };
         $.post("#", mouseData);*/
@@ -437,12 +493,6 @@ function resetClicks() {
 // logTarget() :: log all relevant information regarding the mole target 
 function logTarget () { 
     // Target location 
-    /*
-    if (mouseIsPressed) {
-        targetX = mouseX;
-        targetY = mouseY;  
-    }
-    */
     targetX = myMole[curSpawnIndex].x; 
     targetY = locations[curSpawnIndex].y; // Mole's X and Y is where the location of the hole is located at 
 
@@ -457,22 +507,36 @@ function logTarget () {
 
     // Distance travelled 
     distance = dist(myMole[prevSpawnIndex].x, locations[prevSpawnIndex].y, myMole[curSpawnIndex].x, locations[curSpawnIndex].y);
-
+    // console.log("Current hole = " + curSpawnIndex + ", Next Hole = " + nextHoleIndex);
+    // console.log(distance);
     // console.log ("Location: " + targetX + " " + targetY + ", Size of the mole: " + sizeOfMole + ", Distance travelled from previous to next spawn: " + distance + ", Time from shown to mouse down: " + timeFromShownToMouseDown); 
     
     if (!active) { 
+        // console.log("Stop = " + stopTime);
+        // console.log("Time shown = " + timeShown);
         timeFromShownToMouseDown = stopTime - timeShown; 
     }
-     //console.log(timeFromShownToMouseDown);
-    
-/*
+    // console.log(timeFromShownToMouseDown);
+
+    // Test to see if the mole hid first before they whacked it 
+    // console.log(didTheMoleHideFirst); 
+
+    /*
     var targetData = { 
         locX: targetX, 
         locY: targetY, 
         moleSize: sizeOfMole, 
         distanceTravelled: distance, 
         firstTryClick: clickedOnFirstTry, 
-        timeShownFromClick: timeFromShownToMouseDown,
+        timeShownFromClick: timeFromShownToMouseDown, // The difference between timeFromAppear and timeWhenMouseClicked
+        mousePressedOnTargetX: pressedX,
+        mousePressedOnTargetY: pressedY,
+        prevHole: curSpawnIndex, 
+        nextHole: nextHoleIndex, 
+        nextSize: nextMoleSize,
+        moleHidFirst: didTheMoleHideFirst,
+        timeFromAppear: timeShown,
+        timeWhenMouseClicked: stopTime,
         action: "target"
     }; 
     $.post("#", targetData);*/
