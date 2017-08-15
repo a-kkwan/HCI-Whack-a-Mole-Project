@@ -288,13 +288,13 @@ function preload() {
     title = loadImage("assets/title.png");
 
     // Load the holes
-    hole = loadImage("assets/hole_copy.png");
+    hole = loadImage("assets/hole_copy2.png");
 
     // Load the image of the background, on the canvas
     bg = loadImage("assets/newbg.png"); 
 
     // load the image of the mole
-    img = loadImage("assets/molecpy2.png"); 
+    img = loadImage("assets/molecpy.png"); 
     
     // Load the hammer images 
     hammer = loadImage("assets/hammer.png"); 
