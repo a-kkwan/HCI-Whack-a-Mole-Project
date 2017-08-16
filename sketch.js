@@ -99,6 +99,9 @@ var pressedY;
 // Did the mole hide before the user whacked it? 
 var didTheMoleHideFirst = false; 
 
+// Score keeping system 
+var score = 0; 
+
 // Mole class 
 function Mole (x, y, img) { 
     this.x = x; 
@@ -119,9 +122,9 @@ function Mole (x, y, img) {
        if (spawnSize == 2) { 
            return (mouseX >= (this.x-largeX) && mouseX <= (this.x-largeX)+150 && mouseY >= (this.y-largeY) && mouseY <= (this.y-largeY)+200);
        } else if (spawnSize == 0) { 
-           return (mouseX >= (this.x-smallX) && mouseX <= (this.x-smallX)+230 && mouseY >= (this.y-smallY) && mouseY <= (this.y-smallY)+200);
+           return (mouseX >= (this.x-smallX) && mouseX <= (this.x-smallX)+120 && mouseY >= (this.y-smallY) && mouseY <= (this.y-smallY)+100);
        } else if (spawnSize == 1) { 
-           return (mouseX >= (this.x-medX) && mouseX <= (this.x-medX)+230 && mouseY >= (this.y-medY) && mouseY <= (this.y-medY) + 200);
+           return (mouseX >= (this.x-medX) && mouseX <= (this.x-medX)+180 && mouseY >= (this.y-medY) && mouseY <= (this.y-medY) + 200);
        }
     }
 
@@ -183,6 +186,10 @@ function Mole (x, y, img) {
             // Check if it reaches the bottom, then if it has been hit 
             // Otherwise, keep spawning in the same position until it has been hit 
             if (this.hit) {
+
+                // Increase the score when you've successfully hit the mole
+                score++;
+
                 if ((moleSpawn === positions[current])) {
 
                     /** Save the previous index for distance calculation */
@@ -224,7 +231,7 @@ function Mole (x, y, img) {
                     resetClicks();
 
                    // Reset timer 
-                   this.reset();
+                   this.reset(); 
                 }  
             }
             // Reset the timer after the mole hides for a little bit! (If not hit)
@@ -360,21 +367,7 @@ function welcomeGame() {
     }
 
     // NEWLY ADDED :: Display Instructions 
-    image(instructions, 1030, 860, 170, 46);
-    if (mouseX >= 1030 && mouseX <= (1030+200) && mouseY >= 860 && mouseY<= (860+200)){
-        fill (153, 180);
-        noStroke();
-        rect (width/4, height/5, 700, 500);
-
-        textAlign(CENTER);
-        fill(0);
-        textFont(insFont);
-        textSize(40);
-        text('WHACK A MoLE GAME INSTRUCTIoNS: ', 420, 230, 580, 300);
-        fill(235);
-        text('PRESS START TO BEGIN PLAYING WHACK A MOLE. PRESS BACK TO MENU TO EXIT. ENJOY PLAYING!', 420, 300, 580, 300);
-        text('CREATED BY AMY KWAN (UoFS CoMPUTER SCIENCE, 2017) UNDER THE SUPERVISION OF DR. REGAN MANDRYK.', 420, 500, 580, 300);
-    }
+    displayInstructions();
 }
 
 // playGame() :: play the game, show and hide the moles 
@@ -384,6 +377,9 @@ function playGame() {
   
     // New Holes location 
     loadHoles(); 
+
+    // Display the score
+    displayScore(); 
 
     // Show all of the 9 moles and update their position, according to their mole spawn index
     myMole[moleSpawn].showMole();     
@@ -420,6 +416,36 @@ function displayHammer() {
         image(hammerHit, mouseX-15, mouseY-50, 80, 80);
     } else { 
         image(hammer, mouseX-15, mouseY-50, 80, 80); 
+    }
+}
+
+// displayScore() :: Displays the score of the user, updates after successfully hitting a mole
+function displayScore() { 
+    textFont(insFont);
+    textSize(74);
+    fill(255);
+    text('SCoRE: ' + score, 976, 70);
+    textSize(70);
+    fill('#4d3b3b');
+    text('SCoRE: ' + score, 974, 70);
+}
+
+// displayInstructions() :: Display the instructions of the game 
+function displayInstructions() { 
+    image(instructions, 1030, 860, 170, 46);
+    if (mouseX >= 1030 && mouseX <= (1030+200) && mouseY >= 860 && mouseY<= (860+200)){
+        fill (153, 180);
+        noStroke();
+        rect (width/5, height/5, 700, 500);
+
+        textAlign(CENTER);
+        fill(0);
+        textFont(insFont);
+        textSize(40);
+        text('WHACK A MoLE GAME INSTRUCTIoNS: ', 310, 230, 580, 300);
+        fill(235);
+        text('PRESS START TO BEGIN PLAYING WHACK A MOLE. PRESS BACK TO MENU TO EXIT. ENJOY PLAYING!', 310, 300, 580, 300);
+        text('CREATED BY AMY KWAN (UoFS CoMPUTER SCIENCE, 2017) UNDER THE SUPERVISION OF DR. REGAN MANDRYK.', 310, 500, 580, 300);
     }
 }
 
