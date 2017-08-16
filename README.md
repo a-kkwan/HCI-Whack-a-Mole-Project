@@ -1,4 +1,4 @@
-**Live demo of the Whack a Mole Game can be found [here](https://a-kkwan.github.io/HCI-Whack-a-Mole-Project/).**
+**Live demo of the Whack a Mole Game can be found [here](https://a-kkwan.github.io/HCI-Whack-a-Mole-Project/).** _Updated August 16th, 2017._
 
 # Whack a Mole: By Amy Kwan (2017) in the Human Computer Interaction Lab under Dr. Regan Mandryk (Department of Computer Science, University of Saskatchewan)
 
