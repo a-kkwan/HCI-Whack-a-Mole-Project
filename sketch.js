@@ -424,10 +424,10 @@ function displayScore() {
     textFont(insFont);
     textSize(74);
     fill(255);
-    text('SCoRE: ' + score, 976, 70);
+    text('SCoRE: ' + score, 956, 70);
     textSize(70);
     fill('#4d3b3b');
-    text('SCoRE: ' + score, 974, 70);
+    text('SCoRE: ' + score, 954, 70);
 }
 
 // displayInstructions() :: Display the instructions of the game 
