@@ -64,7 +64,7 @@ var moleSizes = [2, 0, 1, 2, 1, 0, 1, 2, 2, 0, 1, 2, 0, 1, 2, 2, 0, 1, 0, 1, 2, 
 var spawnSize = moleSizes[whichOne]; // start at location 0, which is a large mole 
 
 // Cursor/Time Logging variables
-var timeStamp; // time stamp for cursor movement
+var timeStamp = ""; // time stamp for cursor movement
 
 // Target Logging variables 
 // Location, size, distance travelled, boolean if clicked on first try, time from shown to mouse down 
@@ -101,6 +101,12 @@ var didTheMoleHideFirst = false;
 
 // Score keeping system 
 var score = 0; 
+
+// Only record the time when in the game state 
+var timeWhenGameStarts = 0; 
+var progStartTime = 0; 
+// To control the time recorded when the mole starts appearing to when the mouse is down 
+var timeTheCount = true; // Defaults to true to record the moles time 
 
 // Mole class 
 function Mole (x, y, img) { 
@@ -141,9 +147,11 @@ function Mole (x, y, img) {
             this.graphics.image(img, -30, this.y-(this.gy+50), large, large); 
         }  
 
-        // Activate the timer only if not hit 
-        if (!this.hit) {
-            activateTime();
+        // Activate the timer once, when it appears, set it false afterwards so it 
+        // does not keep updating the time (We want the time in miliseconds)
+        if (timeTheCount) { 
+            activateTime(); 
+            timeTheCount = false; 
         }
 
         // Animation Speed 
@@ -197,15 +205,13 @@ function Mole (x, y, img) {
                     // console.log("Previous spawn index: " + prevSpawnIndex); 
 
                     current++; // If it has been hit, update the mole spawn index to a new position 
-                    moleSpawn = positions[current]; 
                     this.next(); // Update the size only if it's been hit/advancing to next hole 
 
                     // If we exceeded the last position, loop to the beginning of the array 
-                    if (current > 27) {
+                    if (current > (positions.length - 1)) {
                         current = 0;
-                        moleSpawn = positions[current]; 
                     }
-
+                    moleSpawn = positions[current]; 
 
                     /** Save the current index for distance calculation */
                     curSpawnIndex = moleSpawn; 
@@ -213,9 +219,9 @@ function Mole (x, y, img) {
 
                     // Change next hole and check out of bounds 
                     curHole++; 
-                    if (curHole == 27) { 
+                    if (curHole == (positions.length-1)) { 
                         curHole = 0; 
-                    } else if (curHole > 27) { 
+                    } else if (curHole > (positions.length-1)) { 
                         curHole = 1; 
                     }
                     nextHoleIndex = positions[curHole];
@@ -252,18 +258,17 @@ function Mole (x, y, img) {
     this.next = function() { 
         // NOTE:    whichOne = (whichOne + 1) % 20    //  1 %20 = 1, 2%20 = 2, ..., 20 % 20 = 0 , 21 % 20
         whichOne++; // Update the size index 
+
+        if (whichOne > (moleSizes.length-1)) { 
+            whichOne = 0; 
+        }
         spawnSize = moleSizes[whichOne];
 
-        if (whichOne > 27) { 
-            whichOne = 0; 
-            spawnSize = moleSizes[whichOne];
-        }
-
-        // Update the next size for logging 
+        // Update the next size in the size array for logging purposes 
         nextSize++; 
-        if (nextSize == 27) { 
+        if (nextSize == (moleSizes.length-1)) { 
             nextSize = 0; 
-        } else if (nextSize > 27) { 
+        } else if (nextSize > (moleSizes.length-1)) { 
             nextMoleSize = 1; 
         }
         nextMoleSize = moleSizes[nextSize];
@@ -353,6 +358,9 @@ function loadHoles() {
 
 // welcomeGame() :: welcome state of the game 
 function welcomeGame() { 
+    // Start the time when the program launches 
+    progStartTime = millis();
+
     // Title card display 
     image(title, 0, 0, wid, hei);
     // Start button AND change the game start 
@@ -372,6 +380,10 @@ function welcomeGame() {
 
 // playGame() :: play the game, show and hide the moles 
 function playGame() { 
+    // Keep track of the actual game time, which is current elapsed 
+    // milliseconds - time when program started 
+    timeWhenGameStarts = millis() - progStartTime; 
+    
     // Fill the background of the whack a mole game 
     image(bg, 0, 0, wid, hei); 
   
@@ -407,6 +419,9 @@ function playGame() {
     } else {
         image(menuUnpressed, 0, 850, 200, 49);
     } 
+
+    // Log all mouse interactions 
+    logMouse();
 }
 
 // displayHammer() :: Display the hammer as the cursor, changes depending if a mole is hit or not 
@@ -436,17 +451,32 @@ function displayInstructions() {
     if (mouseX >= 1030 && mouseX <= (1030+200) && mouseY >= 860 && mouseY<= (860+200)){
         fill (153, 180);
         noStroke();
-        rect (width/5, height/5, 700, 500);
+        rect (width/5, height/5, 700, 530);
 
         textAlign(CENTER);
         fill(0);
         textFont(insFont);
         textSize(40);
-        text('WHACK A MoLE GAME INSTRUCTIoNS: ', 310, 230, 580, 300);
+        text('WHACK A MoLE GAME INSTRUCTIoNS: ', 420, 230, 580, 300);
         fill(235);
-        text('PRESS START TO BEGIN PLAYING WHACK A MOLE. PRESS BACK TO MENU TO EXIT. ENJOY PLAYING!', 310, 300, 580, 300);
-        text('CREATED BY AMY KWAN (UoFS CoMPUTER SCIENCE, 2017) UNDER THE SUPERVISION OF DR. REGAN MANDRYK.', 310, 500, 580, 300);
+        text('PRESS START TO BEGIN PLAYING WHACK A MOLE. PRESS BACK TO MENU TO EXIT. GRAPHICS BY AMY. FONT FROM DAFONT.COM', 420, 300, 580, 300);
+        text('CREATED BY AMY KWAN (UoFS CoMPUTER SCIENCE, 2017) UNDER THE SUPERVISION OF DR. REGAN MANDRYK.', 420, 530, 580, 300);
     }
+}
+
+// generateDate() :: Generate a timestamp for the program to correlate mouse and target interaction 
+function generateDate() { 
+    var m = month(); 
+    var d = day(); 
+    var y = year();
+    
+    var h = hour(); 
+    var min = minute(); 
+    var s = second(); 
+    var mil = timeWhenGameStarts; //millis();
+
+    // Generate the current date since game start 
+    timeStamp = (y + "-" + m + "-" + d + " " + h + ":" + min + ":" + s + "." + mil); 
 }
 
 // mousePressed() :: Set the hit variable of the mole accordingly if the mouse is over the mole 
@@ -466,11 +496,12 @@ function mousePressed() {
         clickOnce++; // Increase the counter whenever you press to track if we have successfully clicked in one try 
         // console.log(clickOnce);
 
-        // Update timed appearance, from moment of appearance to mouse clicked 
+       // Update timed appearance, from moment of appearance to mouse clicked 
        if (active) {  // Only if its active 
-           active = false; 
-           stopTime = millis(); 
-       }
+        active = false; 
+        stopTime = timeWhenGameStarts; 
+        timeTheCount = true; 
+    }
 
        // Log where the mouse is pressed! 
        pressedX = mouseX;
@@ -478,28 +509,33 @@ function mousePressed() {
 
        // Log the target appropriately when you're in game mode 
         logTarget(); 
+
+        // Testing the current index 
+        // console.log(current);
     }
 }
 
-// mouseMoved() :: Log the mouse locations and a new time stamp of the interactions 
-function mouseMoved() {
+// logMouse() :: Log the mouse locations and a new time stamp of the interactions 
+function logMouse() {
     // Log information when the mouse has moved and out of the welcome state 
-    if (programState == gameState){
-        // timeStamp = new Date(); 
-        // console.log(timeStamp, mouseX, mouseY); 
+    // generate a new timestamp everytime the mouse has been moved in the game state 
+    generateDate();
+    // console.log(timeStamp, mouseX, mouseY); 
 
-        /*
-        var mouseData = {
-            timing: timeStamp, 
-            xPos: mouseX, 
-            yPos: mouseY,
-            prevHole: curSpawnIndex,
-            nextHole: nextHoleIndex, 
-            nextSize: nextMoleSize,
-            action: "mouse"
-        };
-        $.post("#", mouseData);*/
-    }
+    /*
+    // Log the mouse interactions 
+    var mouseData = {
+        timing: timeStamp,             
+        xPos: mouseX, 
+        yPos: mouseY,
+        prevHole: curSpawnIndex,
+        nextHole: nextHoleIndex, 
+        nextSize: nextMoleSize,
+        timeFromAppear: timeShown,
+        timeWhenMouseClicked: stopTime,
+        action: "mouse"
+    };
+    $.post("#", mouseData);*/
 }
 
 /** LOGGING FUNCTIONS */
@@ -507,8 +543,8 @@ function mouseMoved() {
 // activateTime() :: Reset the timing for mole appearance 
 function activateTime() { 
     active = true;
-    timeShown = millis(); 
-    stopTime = 0;  
+    timeShown = timeWhenGameStarts; 
+    // stopTime = 0;  
 }
 
 // resetClicks() :: Reset the click counter back to 0 to check if we whacked a mole on first try 
@@ -534,7 +570,6 @@ function logTarget () {
     // Distance travelled 
     distance = dist(myMole[prevSpawnIndex].x, locations[prevSpawnIndex].y, myMole[curSpawnIndex].x, locations[curSpawnIndex].y);
     // console.log("Current hole = " + curSpawnIndex + ", Next Hole = " + nextHoleIndex);
-    // console.log(distance);
     // console.log ("Location: " + targetX + " " + targetY + ", Size of the mole: " + sizeOfMole + ", Distance travelled from previous to next spawn: " + distance + ", Time from shown to mouse down: " + timeFromShownToMouseDown); 
     
     if (!active) { 
