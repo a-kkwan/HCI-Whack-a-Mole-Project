@@ -219,11 +219,9 @@ function Mole (x, y, img) {
 
                     // Change next hole and check out of bounds 
                     curHole++; 
-                    if (curHole == (positions.length-1)) { 
+                    if (curHole > (positions.length-1)) { 
                         curHole = 0; 
-                    } else if (curHole > (positions.length-1)) { 
-                        curHole = 1; 
-                    }
+                    }   
                     nextHoleIndex = positions[curHole];
 
                     // Have we successfully whacked a mole in one click? 
@@ -266,11 +264,9 @@ function Mole (x, y, img) {
 
         // Update the next size in the size array for logging purposes 
         nextSize++; 
-        if (nextSize == (moleSizes.length-1)) { 
+        if (nextSize > (moleSizes.length-1)) { 
             nextSize = 0; 
-        } else if (nextSize > (moleSizes.length-1)) { 
-            nextMoleSize = 1; 
-        }
+        } 
         nextMoleSize = moleSizes[nextSize];
     }
 
